@@ -1,9 +1,12 @@
 // ===== 设置 =====
 
+export type ApiMode = 'images' | 'responses'
+
 export interface AppSettings {
   baseUrl: string
   apiKey: string
   model: string
+  apiMode: ApiMode
   timeout: number
 }
 
@@ -13,6 +16,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   baseUrl: DEFAULT_BASE_URL,
   apiKey: '',
   model: 'gpt-image-2',
+  apiMode: 'images',
   timeout: 300,
 }
 

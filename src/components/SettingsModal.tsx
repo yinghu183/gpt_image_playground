@@ -3,6 +3,7 @@ import { normalizeBaseUrl } from '../lib/api'
 import { useStore, exportData, importData, clearAllData } from '../store'
 import { DEFAULT_SETTINGS, type AppSettings } from '../types'
 import { useCloseOnEscape } from '../hooks/useCloseOnEscape'
+import Select from './Select'
 
 export default function SettingsModal() {
   const showSettings = useStore((s) => s.showSettings)
@@ -11,13 +12,21 @@ export default function SettingsModal() {
   const setSettings = useStore((s) => s.setSettings)
   const setConfirmDialog = useStore((s) => s.setConfirmDialog)
   const importInputRef = useRef<HTMLInputElement>(null)
-  const [draft, setDraft] = useState<AppSettings>(settings)
+  const [draft, setDraft] = useState<AppSettings>({
+    ...DEFAULT_SETTINGS,
+    ...settings,
+    apiMode: settings.apiMode ?? DEFAULT_SETTINGS.apiMode,
+  })
   const [timeoutInput, setTimeoutInput] = useState(String(settings.timeout))
   const [showApiKey, setShowApiKey] = useState(false)
 
   useEffect(() => {
     if (showSettings) {
-      setDraft(settings)
+      setDraft({
+        ...DEFAULT_SETTINGS,
+        ...settings,
+        apiMode: settings.apiMode ?? DEFAULT_SETTINGS.apiMode,
+      })
       setTimeoutInput(String(settings.timeout))
     }
   }, [showSettings, settings])
@@ -28,6 +37,7 @@ export default function SettingsModal() {
       baseUrl: normalizeBaseUrl(nextDraft.baseUrl.trim() || DEFAULT_SETTINGS.baseUrl),
       apiKey: nextDraft.apiKey,
       model: nextDraft.model.trim() || DEFAULT_SETTINGS.model,
+      apiMode: nextDraft.apiMode ?? DEFAULT_SETTINGS.apiMode,
       timeout: Number(nextDraft.timeout) || DEFAULT_SETTINGS.timeout,
     }
     setDraft(normalizedDraft)
@@ -166,6 +176,22 @@ export default function SettingsModal() {
                   placeholder="gpt-image-2"
                   className="w-full rounded-xl border border-gray-200/70 bg-white/60 px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:focus:border-blue-500/50"
                 />
+              </label>
+
+              <label className="block">
+                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">API 模式</span>
+                <Select
+                  value={draft.apiMode}
+                  onChange={(value) => commitSettings({ ...draft, apiMode: value })}
+                  options={[
+                    { label: 'Images API（默认，调用 /v1/images/generations）', value: 'images' },
+                    { label: 'Responses API（调用 /v1/responses，兼容性更好）', value: 'responses' },
+                  ]}
+                  className="px-3 py-2 rounded-xl border border-gray-200/70 bg-white/60 text-sm text-gray-700 outline-none transition focus:border-blue-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:focus:border-blue-500/50"
+                />
+                <div className="mt-1 text-[10px] text-gray-400 dark:text-gray-500 leading-4">
+                  Images API 适合直接调用 OpenAI 官方接口；Responses API 使用 image_generation 工具，对部分中转站更友好。
+                </div>
               </label>
 
               <label className="block">
